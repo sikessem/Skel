@@ -16,47 +16,49 @@ if(!isset($argv[1])) {
 function parse_line(string $line) {
   $chars = str_split($line);
   $piece = '';
-  foreach($chars as $char) {
+  foreach($chars as $char)
     parse_piece($char, $piece);
-  }
 }
 
 function parse_file(string $file) {
   $fh = @fopen($file, 'r');
   $piece = '';
-  while(!feof($fh)) {
-    $line = fgets($fh);
-    parse_line($line, $piece);
-  }
+  while(!feof($fh))
+    parse_piece(fgetc($fh), $piece);
   fclose($fh);
 }
 
 function parse_piece(string $char, string &$piece) {
-  if($char === ' ' || preg_match('/^[\r\n\t\s]$/', $char)) {
-    $valid = false;
-    if(in_array($piece, KEYWORDS)) $valid = true;
-    else foreach(PATTERNS as $name => $pattern) {
-      if(preg_match("/^$pattern$/", $piece)) {
-        $valid = true;
-        break;
-      }
-    }
-    if($valid) {
-      token($piece);
-    } else {
-      error($piece);
-    }
+  if(is_space($char)) {
+    if($piece === '') return;
+    is_valid($piece)?
+    token($piece):
+    error($piece);
     $piece = '';
     return;
-  }
-  $piece .= $char;
+  } $piece .= $char;
+}
+
+function is_valid(string $piece): bool {
+  $is_valid = false;
+  if(in_array($piece, KEYWORDS)) $is_valid = true;
+  else foreach(PATTERNS as $name => $pattern) {
+    if(preg_match("/^$pattern$/", $piece)) {
+      $is_valid = true;
+      break;
+    }
+  } return $is_valid;
+}
+
+function is_space(string $char): bool {
+  return (bool) preg_match('/^[ \r\n\t\s]$/', $char);
 }
 
 function token(string $token) {
   echo "Token: $token" . PHP_EOL;
 }
 
-function error(string $error) {
-  fputs(STDERR, $error);
+function error(string $token) {
+  fputs(STDERR, "Error: $token");
   exit(1);
 }
