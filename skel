@@ -1,51 +1,14 @@
 #!/usr/bin/php --
 <?php
+
+require_once __DIR__ . '/cfg/_init.php';
+
 $input = $argv[1] ?? '';
-
-define('SRC_DIR', __DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR);
-define('SRC_EXT', '.skel');
-
-define('OUT_DIR', __DIR__ . DIRECTORY_SEPARATOR . 'out' . DIRECTORY_SEPARATOR);
-define('OUT_EXT', '.php');
 
 while(!is_readable($path = SRC_DIR . $input . SRC_EXT))
   $input = readline('Enter an existing file in the source directory : ');
 
 $f = @fopen($path, 'r');
-
-$tokens = [
-  'let' => 'let',
-  'when' => 'when',
-  'then' => 'then',
-  'else' => 'else',
-  'for' => 'for',
-  'do' => 'do',
-  'is' => 'is',
-  'in' => 'in',
-  'of' => 'of',
-  'to' => 'to',
-  'ok' => 'ok',
-  'on' => 'on',
-  'yes' => 'yes',
-  'off' => 'off',
-  'no' => 'no',
-  'not' => 'not',
-  'use' => 'use',
-  'as' => 'as',
-  'equal' => '=',
-  'add' => '+',
-  'sub' => '-',
-  'mul' => '*',
-  'div' => '/',
-  'rem' => '%',
-  'colon' => ':',
-  'semicolon' => ';',
-];
-
-$regexp = [
-  'num' => '\d+',
-  'var' => '[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*',
-];
 
 $code = '';
 
@@ -53,8 +16,8 @@ while(!feof($f)) {
   $c = fgetc($f);
   if($c === ' ' || preg_match('/^[\r\n\t\s]$/', $c)) {
     $valid = false;
-    if(in_array($code, $tokens)) $valid = true;
-    else foreach($regexp as $name => $pattern) {
+    if(in_array($code, KEYWORDS)) $valid = true;
+    else foreach(PATTERNS as $name => $pattern) {
       if(preg_match("/^$pattern$/", $code)) {
         $valid = true;
         break;
