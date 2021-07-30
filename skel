@@ -1,8 +1,17 @@
 #!/usr/bin/php --
 <?php
-$f = @fopen(__DIR__ . '/script.skel', 'r');
+$input = $argv[1] ?? '';
 
-$code = '';
+define('SRC_DIR', __DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR);
+define('SRC_EXT', '.skel');
+
+define('OUT_DIR', __DIR__ . DIRECTORY_SEPARATOR . 'out' . DIRECTORY_SEPARATOR);
+define('OUT_EXT', '.php');
+
+while(!is_readable($path = SRC_DIR . $input . SRC_EXT))
+  $input = readline('Enter an existing file in the source directory : ');
+
+$f = @fopen($path, 'r');
 
 $tokens = [
   'let' => 'let',
@@ -38,6 +47,8 @@ $regexp = [
   'var' => '[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*',
 ];
 
+$code = '';
+
 while(!feof($f)) {
   $c = fgetc($f);
   if($c === ' ' || preg_match('/^[\r\n\t\s]$/', $c)) {
@@ -51,6 +62,8 @@ while(!feof($f)) {
     }
     if($valid) {
       token($code);
+    } else {
+      error($code);
     }
     $code = '';
     continue;
@@ -60,6 +73,11 @@ while(!feof($f)) {
 
 function token(string $token) {
   echo "Token: $token" . PHP_EOL;
+}
+
+function error(string $error) {
+  fputs(STDERR, $error);
+  exit(1);
 }
 
 
