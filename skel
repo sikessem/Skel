@@ -3,35 +3,53 @@
 
 require_once __DIR__ . '/cfg/_init.php';
 
-$input = $argv[1] ?? '';
+if(!isset($argv[1])) {
+  while('\q' !== ($line = readline('>')))
+    parse_line($line);
+} else {
+  $input = $argv[1] ?? '';
+  while(!is_readable($file = SRC_DIR . $input . SRC_EXT))
+    $input = readline('Enter an existing file in the source directory : ');
+  parse_file($file);
+}
 
-while(!is_readable($path = SRC_DIR . $input . SRC_EXT))
-  $input = readline('Enter an existing file in the source directory : ');
+function parse_line(string $line) {
+  $chars = str_split($line);
+  $piece = '';
+  foreach($chars as $char) {
+    parse_piece($char, $piece);
+  }
+}
 
-$f = @fopen($path, 'r');
+function parse_file(string $file) {
+  $fh = @fopen($file, 'r');
+  $piece = '';
+  while(!feof($fh)) {
+    $line = fgets($fh);
+    parse_line($line, $piece);
+  }
+  fclose($fh);
+}
 
-$code = '';
-
-while(!feof($f)) {
-  $c = fgetc($f);
-  if($c === ' ' || preg_match('/^[\r\n\t\s]$/', $c)) {
+function parse_piece(string $char, string &$piece) {
+  if($char === ' ' || preg_match('/^[\r\n\t\s]$/', $char)) {
     $valid = false;
-    if(in_array($code, KEYWORDS)) $valid = true;
+    if(in_array($piece, KEYWORDS)) $valid = true;
     else foreach(PATTERNS as $name => $pattern) {
-      if(preg_match("/^$pattern$/", $code)) {
+      if(preg_match("/^$pattern$/", $piece)) {
         $valid = true;
         break;
       }
     }
     if($valid) {
-      token($code);
+      token($piece);
     } else {
-      error($code);
+      error($piece);
     }
-    $code = '';
-    continue;
+    $piece = '';
+    return;
   }
-  $code .= $c;
+  $piece .= $char;
 }
 
 function token(string $token) {
@@ -42,6 +60,3 @@ function error(string $error) {
   fputs(STDERR, $error);
   exit(1);
 }
-
-
-fclose($f);
