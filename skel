@@ -1,3 +1,66 @@
 #!/usr/bin/php --
 <?php
-echo 'Welcome to Skel!';
+$f = @fopen(__DIR__ . '/script.skel', 'r');
+
+$code = '';
+
+$tokens = [
+  'let' => 'let',
+  'when' => 'when',
+  'then' => 'then',
+  'else' => 'else',
+  'for' => 'for',
+  'do' => 'do',
+  'is' => 'is',
+  'in' => 'in',
+  'of' => 'of',
+  'to' => 'to',
+  'ok' => 'ok',
+  'on' => 'on',
+  'yes' => 'yes',
+  'off' => 'off',
+  'no' => 'no',
+  'not' => 'not',
+  'use' => 'use',
+  'as' => 'as',
+  'equal' => '=',
+  'add' => '+',
+  'sub' => '-',
+  'mul' => '*',
+  'div' => '/',
+  'rem' => '%',
+  'colon' => ':',
+  'semicolon' => ';',
+];
+
+$regexp = [
+  'num' => '\d+',
+  'var' => '[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*',
+];
+
+while(!feof($f)) {
+  $c = fgetc($f);
+  if($c === ' ' || preg_match('/^[\r\n\t\s]$/', $c)) {
+    $valid = false;
+    if(in_array($code, $tokens)) $valid = true;
+    else foreach($regexp as $name => $pattern) {
+      if(preg_match("/^$pattern$/", $code)) {
+        $valid = true;
+        break;
+      }
+    }
+    if($valid) {
+      token($code);
+    }
+    $code = '';
+    continue;
+  }
+  $code .= $c;
+}
+
+function token(string $token) {
+  echo "Token: $token" . PHP_EOL;
+}
+
+
+fclose($f);
