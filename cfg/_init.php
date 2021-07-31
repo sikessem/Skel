@@ -12,7 +12,4 @@ define('LIB_EXT', '.php');
 
 define('LIB_NS', 'Skel\\');
 
-define('KEYWORDS', require CFG_DIR . 'keywords.php');
-define('PATTERNS', require CFG_DIR . 'patterns.php');
-
 require_once CFG_DIR . 'autoload.php';
