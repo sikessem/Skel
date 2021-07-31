@@ -1,6 +1,6 @@
 #!/usr/bin/php --
 <?php use Skel\Program;
 
-require_once __DIR__ . '/cfg/_init.php';
+require_once __DIR__ . '/cfg/boot.php';
 
 (new Program(getcwd()))->main($argv, $argc);

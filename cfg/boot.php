@@ -1,7 +1,7 @@
 <?php
 /*
  +------------------------------------------+
- |         THE SKEL OBJECT AUTOLOAD         |
+ |  Skel Programming Language Starter File  |
  +------------------------------------------+
  | Author : SIGUI Kessé Emmanuel (SIKessEm) |
  | License : Apache 2.0                     |
@@ -9,8 +9,8 @@
  */
 (function(){
   spl_autoload_register(function(string $object) {
-    if(preg_match('/^'. preg_quote(LIB_NS, '/') .'(.*)$/', $object, $matches)) {
-      require_once LIB_DIR . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $matches[1]) . LIB_EXT;
+    if(preg_match('/^'. preg_quote('Skel\\', '/') .'(.*)$/', $object, $matches)) {
+      require_once  dirname(__DIR__) . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $matches[1]) . '.php';
     }
   }, true, true);
 })();
