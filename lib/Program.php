@@ -23,7 +23,7 @@ class Program {
 
   public function main(array $argv, int $argc): void {
     if(php_sapi_name() === 'cli') {
-      if($argc > 1) {
+      if($argc < 2) {
         while('\q' !== ($line = readline('>')))
           $this->parser->parse_line($line);
       } else {
