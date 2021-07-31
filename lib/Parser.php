@@ -4,8 +4,6 @@ class Parser {
 
   public function __construct(protected Lexer $lexer) {}
 
-  protected Lexer $lexer;
-
   public function parse_line(string $line) {
     $chars = str_split($line);
     $piece = '';
