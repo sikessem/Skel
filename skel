@@ -7,12 +7,14 @@ require_once __DIR__ . '/cfg/_init.php';
 
 $parser = new Parser(KEYWORDS, PATTERNS);
 
-if(!isset($argv[1])) {
-  while('\q' !== ($line = readline('>')))
-    $parser->parse_line($line);
-} else {
-  $input = $argv[1] ?? '';
-  while(!is_readable($file = SRC_DIR . $input . SRC_EXT))
-    $input = readline('Enter an existing file in the source directory : ');
-  $parser->parse_file($file);
+if(php_sapi_name() === 'cli') {
+  if(!isset($argv[1])) {
+    while('\q' !== ($line = readline('>')))
+      $parser->parse_line($line);
+  } else {
+    $input = $argv[1] ?? '';
+    while(!is_readable($file = SRC_DIR . $input . SRC_EXT))
+      $input = readline('Enter an existing file in the source directory : ');
+    $parser->parse_file($file);
+  }
 }
