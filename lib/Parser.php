@@ -9,6 +9,8 @@ class Parser {
     $piece = '';
     foreach($chars as $char)
       $this->lexer->build($char, $piece);
+    if($piece !== '')
+      $this->lexer->build(' ', $piece);
   }
 
   public function parse_file(string $file) {
@@ -16,6 +18,8 @@ class Parser {
     $piece = '';
     while(!feof($fh))
       $this->lexer->build(fgetc($fh), $piece);
+    if($piece !== '')
+      $this->lexer->build(' ', $piece);
     fclose($fh);
   }
 }
