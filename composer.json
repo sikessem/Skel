@@ -25,6 +25,11 @@
           "": "lib"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+          "": "try"
+        }
+    },
     "homepage": "https://github.com/SIKessEm/Skel#readme",
     "config": {
         "vendor-dir": "pkg",
