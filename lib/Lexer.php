@@ -2,7 +2,7 @@
 
 class Lexer {
 
-  public function __construct(protected array $keywords, protected array $patterns) {}
+  public function __construct(protected array $terminals, protected array $non_terminals) {}
 
   public function build(string $char, string &$piece) {
     if($this->is_space($char)) {
@@ -17,8 +17,8 @@ class Lexer {
 
   public function is_valid(string $piece): bool {
     $is_valid = false;
-    if(in_array($piece, $this->keywords)) $is_valid = true;
-    else foreach($this->patterns as $name => $pattern) {
+    if(in_array($piece, $this->terminals['keywords'])) $is_valid = true;
+    else foreach($this->terminals['patterns'] as $name => $pattern) {
       if(preg_match("/^$pattern$/", $piece)) {
         $is_valid = true;
         break;

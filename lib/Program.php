@@ -16,7 +16,7 @@ class Program {
       throw new Error("Cannot read $cwd", Error::UNREADABLE);
 
     $this->cwd = realpath($cwd) . DIRECTORY_SEPARATOR;
-    $this->parser = new Parser(new Lexer(Hacker::KEYWORDS, Hacker::PATTERNS));
+    $this->parser = new Parser(new Lexer(Hacker::TERMINALS, Hacker::NON_TERMINALS));
   }
 
   protected string $cwd;
