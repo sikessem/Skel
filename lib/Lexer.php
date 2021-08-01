@@ -17,12 +17,12 @@ class Lexer {
 
   public function is_valid(string $piece): bool {
     $is_valid = false;
-    if(in_array($piece, $this->terminals['keywords'])) $is_valid = true;
-    else foreach($this->terminals['patterns'] as $name => $pattern) {
-      if(preg_match("/^$pattern$/", $piece)) {
+    if(in_array(strtoupper($piece), $this->terminals['keywords'])) $is_valid = true;
+    elseif(in_array($piece, $this->terminals['specials'])) $is_valid = true;
+    else foreach($this->terminals['patterns'] as $name => $pattern)
+      if(preg_match("/^$pattern$/s", $piece)) {
         $is_valid = true;
         break;
-      }
     } return $is_valid;
   }
 
