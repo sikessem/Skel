@@ -9,14 +9,16 @@ class Hacker {
     ],
 
     'specials' => [
-      '+',
-      '-',
-      '*',
-      '/',
-      ':',
-      '=',
-      '%',
-      '^',
+      'add' => '+',
+      'sub' => '-',
+      'mul' => '*',
+      'div' => '/',
+      'rem' => '%',
+      'exp' => '^',
+      'colon' => ':',
+      'equal' => '=',
+      'comma' => ',',
+      'semicolon' => ';',
     ],
 
     'patterns' => [
