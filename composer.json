@@ -1,16 +1,16 @@
 {
     "name": "sikessem/skel",
     "type": "project",
-    "description": "The Skel object-oriented scripting programming language",
+    "description": "Skel: SIKessEm's object-oriented programming language for scripting and hypertext markup",
     "license": "Apache-2.0",
     "keywords": [
         "skel",
         "sikessem"
     ],
     "authors": [{
-        "homepage": "https://sikessem.com/",
+        "homepage": "https://oss.sikessem.com/",
         "name": "SIGUI kessé Emmanuel",
-        "email": "contact@sikessem.com",
+        "email": "opensource@sikessem.com",
         "role": "Developer"
     }],
     "support": {
@@ -21,14 +21,7 @@
         "php": ">=8.0"
     },
     "autoload": {
-        "psr-4": {
-          "": "lib"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-          "": "try"
-        }
+        "files": ["cfg/boot.php"]
     },
     "homepage": "https://github.com/SIKessEm/Skel#readme",
     "config": {
