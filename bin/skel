@@ -1,4 +1,4 @@
-#!/usr/bin/php --
+#!/usr/bin/env php
 <?php use Skel\Program;
 
 require_once dirname(__DIR__) . '/cfg/boot.php';
