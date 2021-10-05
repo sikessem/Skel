@@ -3,4 +3,4 @@
 
 require_once dirname(__DIR__) . '/cfg/boot.php';
 
-(new Program(getcwd()))->main($argv, $argc);
+(new Program(getcwd()))->execute($argv, $argc);
