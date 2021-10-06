@@ -2,74 +2,19 @@
 
 class Hacker {
 
-  const TERMINALS = [
-    'keywords' => [
-      'let',
-      'set',
-      'get',
-      'put',
-      'check',
-      'isset',
-      'unset',
-      'reset',
-    ],
-
-    'specials' => [
-      'add' => '+',
-      'sub' => '-',
-      'mul' => '*',
-      'div' => '/',
-      'rem' => '%',
-      'exp' => '^',
-      'colon' => ':',
-      'equal' => '=',
-      'comma' => ',',
-      'semicolon' => ';',
-    ],
-
-    'patterns' => [
-      'id' => '[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*',
-      'float' => '\d+\.\d*',
-      'digit' => '\d+',
-      'blank' => '[ \t]+',
-      'newLine' => '[\r\n]+',
-      'space' => '[\s]+',
-      'unknown' => '[^\S]+',
-    ],
-  ];
-
-  const NON_TERMINALS = [
-    '' => '{Statement}',
-    'Statement' => '(Let|Put)&";"',
-    'Let' => '"let"&space&Declaration',
-    'Put' => '"put"&space&Expression',
-    'Declaration' => 'ConstantDefinition|VariableDeclaration|ValueAssignment',
-    'ConstantDefinition' => 'id&":"&Value',
-    'VariableDeclaration' => 'id&"="&Value',
-    'ValueAssignment' => 'id&":="&Value',
-    'Expression' => 'Addition|Substraction|Multiplication|Division|Modulo|Exponent|Value',
-    'Addition' => 'Expression&"+"&Expression',
-    'Substraction' => 'Expression&"-"&Expression',
-    'Multiplication' => 'Expression&"*"&Expression',
-    'Division' => 'Expression&"/"&Expression',
-    'Modulo' => 'Expression&"%"&Expression',
-    'Exponent' => 'Expression&"^"&Expression',
-    'Value' => 'Number',
-    'Number' => 'digit|float',
-  ];
-
   protected $terminals = [];
   
   protected $non_terminals = [];
 
   public function __construct(array $terminals = [], array $non_terminals = []) {
-    $this->terminals = self::TERMINALS;
-    $this->non_terminals = self::NON_TERMINALS;
+    $this->grammar = new Grammar;
     $this->setKeywords($terminals['keywords'] ?? [])
          ->setSpecials($terminals['specials'] ?? [])
          ->setPatterns($terminals['patterns'] ?? [])
          ->setNonTerminals($non_terminals);
   }
+
+  protected Grammar $grammar;
 
   public function setTerminals(string $key, array $values): static {
     foreach ($values as $name => $value)
@@ -78,13 +23,13 @@ class Hacker {
   }
 
   public function setTerminal(string $key, string $name, string $value): static {
-    if (isset(self::TERMINALS[$key][$name]))
+    if (isset($this->grammar->terminals()[$key][$name]))
       $this->terminals[$key][$name] = $value;
     return $this;
   }
 
   public function getTerminals(string $key): ?array {
-    return $this->terminals[$key] ?? null;
+    return $this->terminals[$key] ?? $this->grammar->terminals()[$key] ?? null;
   }
 
   public function getTerminal(string $key, string $name): ?string {
@@ -98,13 +43,17 @@ class Hacker {
   }
 
   public function setNonTerminal(string $name, string $value): static {
-    if (isset(self::TERMINALS[$name]))
+    if (isset($this->grammar->non_terminals()[$name]))
       $this->non_terminals[$name] = $value;
     return $this;
   }
 
+  public function getNonTerminals(): ?array {
+    return $this->non_terminals ?? $this->grammar->non_terminals() ?? null;
+  }
+
   public function getNonTerminal(string $name): ?string {
-    return $this->non_terminals[$name] ?? null;
+    return $this->non_terminals[$name] ?? $this->grammar->non_terminals()[$name] ?? null;
   }
 
   public function setKeywords(array $keywords): static {
