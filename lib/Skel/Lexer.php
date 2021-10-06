@@ -1,42 +1,73 @@
 <?php namespace Skel;
 
 class Lexer {
-
-  public function __construct(protected array $terminals, protected array $non_terminals) {}
-
-  public function build(string $char, string &$piece) {
-    if($this->is_space($char)) {
-      if($piece === '') return;
-      $this->is_valid($piece)?
-      $this->token($piece):
-      $this->error($piece);
-      $piece = '';
-      return;
-    } $piece .= $char;
+  public function __construct() {
+    $this->hacker = new Hacker;
   }
 
-  public function is_valid(string $piece): bool {
-    $is_valid = false;
-    if(in_array(strtoupper($piece), $this->terminals['keywords'])) $is_valid = true;
-    elseif(in_array($piece, $this->terminals['specials'])) $is_valid = true;
-    else foreach($this->terminals['patterns'] as $name => $pattern)
-      if(preg_match("/^$pattern$/s", $piece)) {
-        $is_valid = true;
-        break;
-    } return $is_valid;
+  protected Hacker $hacker;
+
+  protected const TOKENS = [
+    'id'      => '[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*',
+    'float'   => '\d+\.\d*',
+    'digit'   => '\d+',
+    'blank'   => '[ \t]+',
+    'newLine' => '[\r\n]+',
+    'space'   => '[\s]+',
+    'unknown' => '[^\S]+',
+  ];
+
+  public function get_token(string $value): ?string {
+    foreach (self::TOKENS as $token => $pattern)
+      if (preg_match("/^$pattern$/", $value, $matches))
+        return $token;
+    return null;
   }
 
-  public function token(string $token) {
-    echo "Token: $token" . PHP_EOL;
+  public function get_tokens(string $code): array {
+    $this->tokens = [];
+    $this->set_chars(str_split($code));
+    $this->process();
+    return $this->tokens;
   }
 
-  public function error(string $token) {
-    fputs(STDERR, "Error: $token");
-    exit(1);
+  protected function process(): bool {
+    while (!is_null($char = $this->get_char())) {
+        $statement = isset($this->statement) ? $this->statement . $char : $char;
+        if ($token = $this->get_token($statement)) {
+            $this->token = $token;
+            $this->statement = $statement;
+        } else {
+            $this->add_statement_token() ? --$this->offset : $this->offset = 0;
+            $this->process();
+        }
+    }
+    return $this->add_statement_token();
   }
 
-  protected function is_space(string $char): bool {
-    return (bool) preg_match('/^[ \r\n\t\s]$/', $char);
+  protected ?string $token = null;
+  protected ?string $statement = null;
+  protected array $tokens = [];
+
+  protected function add_statement_token(): bool {
+    if (isset($this->statement)) {
+      $this->tokens[] = [$this->token, $this->statement];
+      $this->statement = null;
+      $this->token = null;
+      return true;
+    }
+    return false;
   }
 
+  protected array $chars = [];
+  protected int $offset = 0;
+
+  protected function set_chars(array $chars): void {
+    $this->chars = $chars;
+    $this->offset = 0;
+  }
+
+  protected function get_char(): ?string {
+    return isset($this->chars[$this->offset]) ? $this->chars[$this->offset++] : null;
+  }
 }

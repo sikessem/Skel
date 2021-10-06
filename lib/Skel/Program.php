@@ -33,7 +33,6 @@ class Program {
           $input = readline('Enter an existing file in the source directory : ');
         $interpreter->interpret_file($file);
       }
-      print_r($interpreter->get_tokens());
     }
   }
 }
