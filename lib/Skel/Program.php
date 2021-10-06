@@ -58,33 +58,34 @@ class Program {
   }
 
   protected function interpret_line(string $line): bool {
-    $chars = str_split($line);
-    foreach ($chars as $char)
-      if (!$this->interpret_char($char))
-        return false;
-    return true;
+    $this->set_chars(str_split($line . PHP_EOL));
+    return $this->interpret();
   }
 
-  protected function interpret_char(string $char): bool {
-    $statement = isset($this->statement) ? $this->statement . $char : $char;
-    return $this->interpret($statement, $char);
-  }
-
-  protected function interpret(string $statement, ?string $char): bool {
-    if ($this->match($statement)) {
-      $this->statement = $statement;
-      return true;
-    } elseif (!empty($this->matches)) {
-      if ($token = $this->token())
-        $this->tokens[] = $token;
-      $this->matches = [];
-      $this->statement = null;
-      return $this->interpret_char($char);
-    } else {
-      $this->matches = [];
-      $this->statement = null;
-      return false;
+  protected function interpret(): bool {
+    while (!is_null($char = $this->get_char())) {
+      $statement = isset($this->statement) ? $this->statement . $char : $char;
+      if ($token = $this->get_token($statement)) {
+        $this->token = $token;
+        $this->statement = $statement;
+      } else {
+        $this->add_statement_token() ? --$this->offset : $this->offset = 0;
+        $this->interpret();
+      }
     }
+    return $this->add_statement_token();
+  }
+
+  protected array $chars = [];
+  protected int $offset = 0;
+
+  protected function set_chars(array $chars): void {
+    $this->chars = $chars;
+    $this->offset = 0;
+  }
+
+  protected function get_char(): ?string {
+    return isset($this->chars[$this->offset]) ? $this->chars[$this->offset++] : null;
   }
 
   protected const TOKENS = [
@@ -97,33 +98,24 @@ class Program {
       'unknown' => '[^\S]+',
   ];
 
+  public function get_token(string $value): ?string {
+    foreach (self::TOKENS as $token => $pattern)
+      if (preg_match("/^$pattern$/", $value, $matches))
+        return $token;
+    return null;
+  }
+
+  protected ?string $token = null;
   protected ?string $statement = null;
+  protected array $tokens = [];
 
-  protected array $matches = [];
-
-  protected function match(string $value): bool {
-    foreach (self::TOKENS as $token => $pattern) {
-      if (preg_match("/^$pattern$/", $value, $matches)) {
-        $this->matches[$token][] = $value;
-        return true;
-      }
+  protected function add_statement_token(): bool {
+    if (isset($this->statement)) {
+      $this->tokens[] = [$this->token, $this->statement];
+      $this->statement = null;
+      $this->token = null;
+      return true;
     }
     return false;
   }
-
-  public function token(): ?array {
-    $token_name = '';
-    $token_value = '';
-    foreach ($this->matches as $name => $values) {
-      foreach ($values as $value) {
-        if (strlen($value) > strlen($token_value)) {
-          $token_name = $name;
-          $token_value = $value;
-        }
-      }
-    }
-    return !empty($token_value) ? [$token_name, $token_value] : null;
-  }
-
-  protected array $tokens = [];
 }
