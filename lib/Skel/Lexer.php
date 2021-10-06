@@ -8,10 +8,21 @@ class Lexer {
   protected Hacker $hacker;
 
   public function get_token(string $value): ?string {
+    if ($keywords = $this->hacker->getKeywords())
+      foreach ($keywords as $keyword)
+        if (strtolower($keyword) === strtolower($value))
+          return $keyword;
+
+    if ($specials = $this->hacker->getSpecials())
+      foreach ($specials as $token => $special)
+        if ($special === $value)
+          return $token;
+
     if ($patterns = $this->hacker->getPatterns())
       foreach ($patterns as $token => $pattern)
         if (preg_match("/^$pattern$/", $value, $matches))
           return $token;
+
     return null;
   }
 
