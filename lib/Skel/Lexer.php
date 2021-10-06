@@ -7,20 +7,11 @@ class Lexer {
 
   protected Hacker $hacker;
 
-  protected const TOKENS = [
-    'id'      => '[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*',
-    'float'   => '\d+\.\d*',
-    'digit'   => '\d+',
-    'blank'   => '[ \t]+',
-    'newLine' => '[\r\n]+',
-    'space'   => '[\s]+',
-    'unknown' => '[^\S]+',
-  ];
-
   public function get_token(string $value): ?string {
-    foreach (self::TOKENS as $token => $pattern)
-      if (preg_match("/^$pattern$/", $value, $matches))
-        return $token;
+    if ($patterns = $this->hacker->getPatterns())
+      foreach ($patterns as $token => $pattern)
+        if (preg_match("/^$pattern$/", $value, $matches))
+          return $token;
     return null;
   }
 
