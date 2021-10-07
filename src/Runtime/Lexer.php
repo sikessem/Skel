@@ -1,4 +1,6 @@
-<?php namespace Skel;
+<?php
+
+namespace Skel\Runtime;
 
 class Lexer {
   public function __construct() {

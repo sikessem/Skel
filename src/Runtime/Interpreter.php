@@ -1,6 +1,6 @@
 <?php
 
-namespace Skel;
+namespace Skel\Runtime;
 
 class Interpreter {
     public function __construct() {
