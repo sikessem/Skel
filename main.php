@@ -104,32 +104,130 @@ function setup(int $algo, string $stub): void {
     $phar->stopBuffering();
 }
 
+class Token {
+    public function __construct(null|string|array $value = null) {
+        $this->setValue($value);
+    }
+
+    protected null|string|array $value;
+
+    public function setValue(null|string|array $value): void {
+        $this->value = $value;
+    }
+
+    public function getName(): ?string {
+        return is_array($this->value) ? token_name($this->value[0]) : $this->value;
+    }
+
+    public function getId(): ?int {
+        return is_array($this->value) ? $this->value[0] : null;
+    }
+
+    public function getContent(): ?string {
+        return is_array($this->value) ? $this->value[1] : $this->value;
+    }
+
+    public function getLine(): ?int {
+        return is_array($this->value) ? $this->value[2] : null;
+    }
+
+    public function isString(): bool {
+        return is_string($this->value);
+    }
+
+    public function isNotString(): bool {
+        return !$this->isString();
+    }
+
+    public function isNull(): bool {
+        return is_null($this->value);
+    }
+
+    public function isNotNull(): bool {
+        return !$this->isNull();
+    }
+
+    public function isArray(): bool {
+        return is_array($this->value);
+    }
+
+    public function isNotArray(): bool {
+        return !$this->isArray();
+    }
+
+    public function is(int|string $ref): bool {
+        return is_string($ref) || $this->isNotArray() ? $this->getContent() === $ref : $this->getId() === $ref;
+    }
+
+    public function isNot(int|string $ref): bool {
+        return !$this->is($ref);
+    }
+
+    public function in(int|string|array ...$refs): bool {
+        foreach ($refs as $ref)
+            if (is_array($ref)) {
+                if ($this->in(...$ref))
+                    return true;
+            }
+            elseif ($this->is($ref))
+                return true;
+        return false;
+    }
+
+    public function notIn(int|string|array ...$refs): bool {
+        return !$this->in(...$refs);
+    }
+
+    public function __toString(): string {
+        return $this->getContent();  
+    }
+}
+
 function strip(string $code): string {
     if (!function_exists('token_get_all'))
         return $code;
 
     $tokens = token_get_all($code);
     $output = '';
-    $previous = null;
-    $next = null;
+    $previous = new Token;
+    $next = new Token;
     foreach ($tokens as $key => $token) {
-        $next = $tokens[$key] ?? null;
-        if (is_string($token))
+        $next->setValue($tokens[$key + 1] ?? null);
+        $token = new Token($token);
+        if ($token->isString())
             $output .= $token;
-        elseif (in_array($token[0], [T_COMMENT, T_DOC_COMMENT]))
+        elseif ($token->in(T_COMMENT, T_DOC_COMMENT))
             $output .= '';
-        elseif (T_WHITESPACE === $token[0]) {
-            $space = $token[1];
-            $space = preg_replace('/[ \t]+/', ' ', $space);
-            $space = preg_replace('/[\r\n]+/', "\n", $space);
-            $space = preg_replace('/\n +/', "\n", $space);
-            $space = preg_replace('/\s+/s', ' ', $space);
-            $output .= $space;
+        elseif ($token->is(T_WHITESPACE)) {
+            if (
+                (
+                    $previous->isNotArray() ||
+                    $next->isNotArray()
+                ) || (
+                    $previous->is(T_DOUBLE_ARROW) ||
+                    $next->is(T_DOUBLE_ARROW)
+                ) ||(
+                    $previous->in(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT) ||
+                    $next->in(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT)
+                ) || (
+                    $previous->is(T_OPEN_TAG) ||
+                    $next->is(T_CLOSE_TAG)
+                )
+            ) $output .= '';
+            else {
+                $space = $token->getContent();
+                $space = preg_replace('/[ \t]+/', ' ', $space);
+                $space = preg_replace('/[\r\n]+/', "\n", $space);
+                $space = preg_replace('/\n +/', "\n", $space);
+                $space = preg_replace('/\s+/s', ' ', $space);
+                $output .= $space;
+            }
         }
         else
-            $output .= $token[1];
+            $output .= $token;
         $previous = $token;
     }
+    unset($previous, $next, $tokens);
     return $output;
 }
 
