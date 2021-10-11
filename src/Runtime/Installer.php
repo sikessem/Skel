@@ -27,56 +27,8 @@ class Installer {
 
         $phar->startBuffering();
         $this->start($phar, $this->dir);
-        $phar->setStub($this->strip($stub));
+        $phar->setStub(Compiler::compileCode($stub));
         $phar->stopBuffering();
-    }
-
-    protected function strip(string $code): string {
-        if (!function_exists('token_get_all'))
-            return $code;
-
-        $tokens = token_get_all($code);
-        $output = '';
-        $previous = new Token;
-        $next = new Token;
-        foreach ($tokens as $key => $token) {
-            $next->setValue($tokens[$key + 1] ?? null);
-            $token = new Token($token);
-            if ($token->isString())
-                $output .= $token;
-            elseif ($token->in(T_COMMENT, T_DOC_COMMENT))
-                $output .= '';
-            elseif ($token->is(T_WHITESPACE)) {
-                if (
-                    (
-                        $previous->isNotArray() ||
-                        $next->isNotArray()
-                    ) || (
-                        $previous->is(T_DOUBLE_ARROW) ||
-                        $next->is(T_DOUBLE_ARROW)
-                    ) ||(
-                        $previous->in(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT) ||
-                        $next->in(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT)
-                    ) || (
-                        $previous->is(T_OPEN_TAG) ||
-                        $next->is(T_CLOSE_TAG)
-                    )
-                ) $output .= '';
-                else {
-                    $space = $token->getContent();
-                    $space = preg_replace('/[ \t]+/', ' ', $space);
-                    $space = preg_replace('/[\r\n]+/', "\n", $space);
-                    $space = preg_replace('/\n +/', "\n", $space);
-                    $space = preg_replace('/\s+/s', ' ', $space);
-                    $output .= $space;
-                }
-            }
-            else
-                $output .= $token;
-            $previous = $token;
-        }
-        unset($previous, $next, $tokens);
-        return $output;
     }
 
     protected function pathOf(string $path): string {
@@ -126,7 +78,7 @@ class Installer {
 
     protected function addCode(Phar $phar, string $path, string $content, bool $strip = true): void {
         echo "Add code $path" . PHP_EOL;
-        $phar->addFromString($path, $strip ? $this->strip($content) : $content);
+        $phar->addFromString($path, $strip ? Compiler::compileCode($content) : $content);
     }
 
     protected function addFile(Phar $phar, string $relativePath, string $absolutePath): void {
