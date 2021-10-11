@@ -21,10 +21,13 @@ class Installer {
 
     public function setup(string $file, string $stub, ?int $algo = null): void {
         $phar = new Phar($file, 0, $this->phar);
+
+        if (isset($algo))
+            $phar->setSignatureAlgorithm($algo);
+
         $phar->startBuffering();
-        $phar->setSignatureAlgorithm($algo);
         $this->start($phar, $this->dir);
-        $phar->setStub($stub);
+        $phar->setStub($this->strip($stub));
         $phar->stopBuffering();
     }
 
