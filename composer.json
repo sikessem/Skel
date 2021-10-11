@@ -1,5 +1,5 @@
 {
-    "name": "sikessem/skel",
+    "name": "skel/core",
     "type": "project",
     "description": "Skel: SIKessEm's object-oriented programming language for scripting and hypertext markup",
     "license": "Apache-2.0",
