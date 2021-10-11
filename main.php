@@ -1,26 +1,18 @@
 <?php
 
-const SKEL_PHAR_FILE = 'skel.phar';
+use Skel\Runtime\Token;
 
-const SKEL_SAPI_REQUIRED = [
+const SKEL_PHAR = 'skel.phar';
+
+const SKEL_SAPI = [
     'cli',
     'phpdbg'
 ];
 
-const SKEL_VERSION_REQUIRED = [
-    '>=',
-    '8.0',
-    '<'
-];
-
-const SKEL_EXTENSIONS_REQUIRED = [
-    'phar' => [
-        'phar.readonly' => false,
-    ],
-];
+require_once root() . 'cfg/boot.php';
 
 function main(string $wdir, array $argv, int $argc, $input_stream, $output_stream, $error_stream): void {
-    $phar_file = $argc > 1 && strpos($argv[1], '-') !== 0 ? $argv[1] : SKEL_PHAR_FILE;
+    $phar_file = $argc > 1 && strpos($argv[1], '-') !== 0 ? $argv[1] : SKEL_PHAR;
 
     if (is_file($phar_file = $wdir . DIRECTORY_SEPARATOR . $phar_file) && !in_array('-y', $argv)) {
         fwrite($output_stream, "$phar_file already exists. Replace it (Y/n)? ");
@@ -31,36 +23,10 @@ function main(string $wdir, array $argv, int $argc, $input_stream, $output_strea
         unlink($phar_file);
     }
 
-    if (!in_array(PHP_SAPI, (array) SKEL_SAPI_REQUIRED)) {
+    if (!in_array(PHP_SAPI, (array) SKEL_SAPI)) {
         fprintf($error_stream, '%s is not a PHP CLI setup' . PHP_EOL, PHP_BINARY);
         exit(1);
     }
-
-    if (!version_compare(PHP_VERSION, SKEL_VERSION_REQUIRED[1], SKEL_VERSION_REQUIRED[0])) {
-        fprintf($error_stream, 'PHP version %s ' . SKEL_VERSION_REQUIRED[2] . ' ' . SKEL_VERSION_REQUIRED[1] . PHP_EOL, PHP_VERSION);
-        exit(1);
-    }
-
-    foreach (SKEL_EXTENSIONS_REQUIRED as $extension => $options) {
-        if (is_string($options)) {
-            $extension = $options;
-            $options = [];
-        }
-        
-        if (!extension_loaded($extension)) {
-            fwrite($error_stream, "Load the $extension extension" . PHP_EOL);
-            exit(1);
-        }
-
-        foreach ($options as $option => $value) {
-            if ((string) $value !== ini_get($option)) {
-                fwrite($error_stream, "Set the option $option to " . (is_bool($value) ? ($value === true ? 'On': 'Off') : $value) . ' from the php.ini file' . PHP_EOL);
-                exit(1);
-            }
-        }
-        unset($option, $value);
-    }
-    unset($extension, $options);
 
     $skel_phar = phar(new \Phar($phar_file, 0, 'skel.phar'));
     setup(\Phar::SHA512, stub());
@@ -102,85 +68,6 @@ function setup(int $algo, string $stub): void {
     start(root());
     $phar->setStub($stub);
     $phar->stopBuffering();
-}
-
-class Token {
-    public function __construct(null|string|array $value = null) {
-        $this->setValue($value);
-    }
-
-    protected null|string|array $value;
-
-    public function setValue(null|string|array $value): void {
-        $this->value = $value;
-    }
-
-    public function getName(): ?string {
-        return is_array($this->value) ? token_name($this->value[0]) : $this->value;
-    }
-
-    public function getId(): ?int {
-        return is_array($this->value) ? $this->value[0] : null;
-    }
-
-    public function getContent(): ?string {
-        return is_array($this->value) ? $this->value[1] : $this->value;
-    }
-
-    public function getLine(): ?int {
-        return is_array($this->value) ? $this->value[2] : null;
-    }
-
-    public function isString(): bool {
-        return is_string($this->value);
-    }
-
-    public function isNotString(): bool {
-        return !$this->isString();
-    }
-
-    public function isNull(): bool {
-        return is_null($this->value);
-    }
-
-    public function isNotNull(): bool {
-        return !$this->isNull();
-    }
-
-    public function isArray(): bool {
-        return is_array($this->value);
-    }
-
-    public function isNotArray(): bool {
-        return !$this->isArray();
-    }
-
-    public function is(int|string $ref): bool {
-        return is_string($ref) || $this->isNotArray() ? $this->getContent() === $ref : $this->getId() === $ref;
-    }
-
-    public function isNot(int|string $ref): bool {
-        return !$this->is($ref);
-    }
-
-    public function in(int|string|array ...$refs): bool {
-        foreach ($refs as $ref)
-            if (is_array($ref)) {
-                if ($this->in(...$ref))
-                    return true;
-            }
-            elseif ($this->is($ref))
-                return true;
-        return false;
-    }
-
-    public function notIn(int|string|array ...$refs): bool {
-        return !$this->in(...$refs);
-    }
-
-    public function __toString(): string {
-        return $this->getContent();  
-    }
 }
 
 function strip(string $code): string {
