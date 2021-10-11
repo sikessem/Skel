@@ -10,7 +10,7 @@ const SKEL_SAPI = [
     'phpdbg'
 ];
 
-require_once __DIR__ . '/cfg/boot.php';
+require_once __DIR__ . '/cfg/bootstrap.php';
 
 function install(string $wdir, array $argv, int $argc, $input_stream, $output_stream, $error_stream): void {
     $phar_file = $argc > 1 && strpos($argv[1], '-') !== 0 ? $argv[1] : SKEL_PHAR;
