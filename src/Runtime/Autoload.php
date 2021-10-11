@@ -3,9 +3,61 @@
 namespace Skel\Runtime;
 
 class Autoload {
-    public function __construct(protected string $root) {}
+    protected const VERSION_OPERATOR_INVERSE = [
+        '<' => '>=',
+        'lt' => 'ge',
+        '<=' => '>',
+        'le' => 'gt',
+        '>' => '<=',
+        'gt' => 'le',
+        '>=' => '<',
+        'ge' => 'lt',
+        '==' => '!=',
+        '=' => '<>',
+        'eq' => 'ne',
+        '!=' => '==',
+        '<>' => '=',
+        'ne' => 'eq',
+    ];
+
+    public function __construct(protected string $root, protected array $requirements) {}
 
     public function __invoke($object) {
+        $plateform = $this->requirements['plateform'] ?? [];
+        $plateform_version = $plateform['version'] ?? '>=' . PHP_VERSION;
+        $plateform_extensions = $plateform['extensions'] ?? [];
+
+        foreach (self::VERSION_OPERATOR_INVERSE as $version_operator => $operator_inverse) {
+            if (preg_match("/^({$version_operator})([0-9]+(?:\.[0-9]+){0,3})$/", $plateform_version, $version_matches)) {
+                $version_operator = $version_matches[1];
+                $plateform_version = $version_matches[2];
+                if (!version_compare(PHP_VERSION, $plateform_version, $version_operator)) {
+                    fprintf(STDERR, "PHP version %s %s %s" . PHP_EOL, PHP_VERSION, $operator_inverse, $plateform_version);
+                    exit(1);
+                }
+                break;
+            }
+            unset($version_matches);
+        }
+        unset($version_operator, $operator_inverse);
+
+        foreach ($plateform_extensions as $extension_name => $extension_options) {        
+            if (!extension_loaded($extension_name)) {
+                fwrite(STDERR, "Load the $extension_name extension" . PHP_EOL);
+                exit(1);
+            }
+
+            foreach ($extension_options as $option => $value) {
+                if ((string) $value !== ini_get($option)) {
+                    fwrite(STDERR, "Set the option $option to " . (is_bool($value) ? ($value === true ? 'On': 'Off') : $value) . ' from the php.ini file' . PHP_EOL);
+                    exit(1);
+                }
+            }
+            unset($option, $value);
+        }
+        unset($extension_name, $extension_options);
+
+
         // src autoload
 
         if (
