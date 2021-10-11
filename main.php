@@ -1,8 +1,7 @@
-#!/usr/bin/env php
 <?php
 
 use Skel\Runtime\Program;
 
-require_once dirname(__DIR__) . '/cfg/boot.php';
+require_once __DIR__ . '/cfg/boot.php';
 
 (new Program(getcwd()))->execute($argv, $argc);
