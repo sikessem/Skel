@@ -1,7 +1,7 @@
 {
-    "name": "sikessem/skel",
+    "name": "skel/core",
     "type": "project",
-    "description": "Skel: SIKessEm's object-oriented programming language for scripting and hypertext markup",
+    "description": "Skel is an object-oriented programming language for scripting and hypertext markup",
     "license": "Apache-2.0",
     "keywords": [
         "skel",
@@ -21,7 +21,7 @@
         "php": ">=8.0"
     },
     "autoload": {
-        "files": ["cfg/boot.php"]
+        "files": ["cfg/bootstrap.php"]
     },
     "homepage": "https://github.com/SIKessEm/Skel#readme",
     "config": {
@@ -29,7 +29,10 @@
         "preferred-install": "dist",
         "sort-packages": true
     },
-    "bin": "bin/skel",
+    "bin": [
+        "install",
+        "main.php"
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true
 }
