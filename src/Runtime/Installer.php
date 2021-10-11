@@ -27,8 +27,8 @@ class Installer {
 
         $phar->startBuffering();
 
-        $archiver = new Archiver($phar, $this->dir);
-        $archiver->excludeFiles([
+        $fileFinder = new FileFinder;
+        $fileFinder->exclude([
             '.gitignore',
             'LICENSE',
             'README.md',
@@ -36,10 +36,13 @@ class Installer {
             'main.php',
             'skel.phar',
         ]);
-        $archiver->excludePaths([
+        $pathFinder = new PathFinder;
+        $pathFinder->exclude([
             '/^pkg\//',
             '/^.git\//',
         ]);
+
+        $archiver = new Archiver($phar, $this->dir, [$fileFinder, $pathFinder]);
         $archiver->archive();
 
         $phar->setStub(Compiler::compileCode($stub));

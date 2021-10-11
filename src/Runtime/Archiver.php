@@ -5,9 +5,23 @@ namespace Skel\Runtime;
 use \Phar;
 
 class Archiver {
-    public function __construct(protected Phar $phar, string $dir) {
+    public function __construct(protected Phar $phar, string $dir, array $finders = []) {
         $this->setDir($dir);
+        $this->addFinders($finders);
     }
+
+    public function addFinders(array $finders): static {
+        foreach ($finders as $finder)
+            $this->addFinder($finder);
+        return $this;
+    }
+
+    public function addFinder(Finder $finder): static {
+        $this->finders[] = $finder;
+        return $this;
+    }
+
+    protected array $finders = [];
 
     protected string $dir;
 
@@ -42,12 +56,15 @@ class Archiver {
             $absolutePath = $dir . $file;
             $relativePath = $this->pathOf($absolutePath);
 
-            if ($this->excluded($relativePath))
-                return;
-            
-            if ($this->included($relativePath)) {
-                $this->addFile($absolutePath, $relativePath);
-                return;
+            foreach ($this->finders as $finder)
+                if ($finder->excluded($relativePath))
+                    return;
+
+            foreach ($this->finders as $finder) {
+                if ($finder->included($relativePath)) {
+                    $this->addFile($absolutePath, $relativePath);
+                    return;
+                }
             }
 
             if (is_dir($absolutePath)) {
@@ -56,7 +73,7 @@ class Archiver {
             }
 
             if (
-                $this->matchFile('bin/*', $relativePath) &&
+                FileFinder::match('bin/*', $relativePath) &&
                 ($content = file_get_contents($absolutePath)) &&
                 $content !== ($replacement = preg_replace('/^\#\!\/usr\/bin\/env php\s*/', '', $content))
             ) {
@@ -64,7 +81,7 @@ class Archiver {
                 return;
             }
             
-            if ($this->matchFile('*.php', $relativePath)) {
+            if (FileFinder::match('*.php', $relativePath)) {
                 $content = file_get_contents($absolutePath);
                 $this->addCode($content, $relativePath);
             }
@@ -79,86 +96,5 @@ class Archiver {
     protected function addCode(string $content, string $path, bool $compiled = true): void {
         echo "Add code $path" . PHP_EOL;
         $this->phar->addFromString($path, $compiled ? Compiler::compileCode($content) : $content);
-    }
-
-    protected array $exclude = [];
-    protected array $include = [];
-
-    protected function exclude(string $type, string $pattern): static {
-        if (is_int($key = array_search($pattern, $this->include[$type] ??= [], true)))
-            unset($this->include[$type][$key]);
-        $this->exclude[$type][] = $pattern;
-        return $this;
-    }
-
-    public function include(string $type, string $pattern): static {
-        if (is_int($key = array_search($pattern, $this->exclude[$type] ??= [], true)))
-            unset($this->exclude[$type][$key]);
-        $this->include[$type][] = $pattern;
-        return $this;
-    }
-
-    public function excluded(string $name): bool {
-        foreach ($this->exclude as $excludedType => $excludedPatterns)
-            foreach ($excludedPatterns as $excludedPattern)
-                if ($this->{'match' . ucfirst($excludedType)}($excludedPattern, $name))
-                    return true;
-        return false;
-    }
-
-    public function included(string $name): bool {
-        foreach ($this->include as $includedType => $includedPatterns)
-            foreach ($includedPatterns as $includedPattern)
-                if ($this->{'match' . ucfirst($includedType)}($includedPattern, $name))
-                    return true;
-        return false;
-    }
-
-    public function excludeFiles(string|array ...$patterns): static {
-        foreach ($patterns as $pattern)
-            is_array($pattern) ? $this->excludeFiles(...$pattern) : $this->excludeFile($pattern);
-        return $this;
-    }
-
-    public function includeFiles(string|array ...$patterns): static {
-        foreach ($patterns as $pattern)
-            is_array($pattern) ? $this->includeFiles(...$pattern) : $this->includeFile($pattern);
-        return $this;
-    }
-
-    public function excludeFile(string $pattern): static {
-        return $this->exclude('file', $pattern);
-    }
-
-    public function includeFile(string $pattern): static {
-        return $this->include('file', $pattern);
-    }
-
-    public function matchFile(string $pattern, string $name, int $flags = 0): bool {
-        return (bool) fnmatch($pattern, $name, $flags);
-    }
-
-    public function includePaths(string|array ...$patterns): static {
-        foreach ($patterns as $pattern)
-            is_array($pattern) ? $this->includePaths(...$pattern) : $this->includePath($pattern);
-        return $this;
-    }
-
-    public function excludePaths(string|array ...$patterns): static {
-        foreach ($patterns as $pattern)
-            is_array($pattern) ? $this->excludePaths(...$pattern) : $this->excludePath($pattern);
-        return $this;
-    }
-
-    public function excludePath(string $pattern): static {
-        return $this->exclude('path', $pattern);
-    }
-
-    public function includePath(string $pattern): static {
-        return $this->include('path', $pattern);
-    }
-
-    public function matchPath(string $pattern, string $name, int $flags = 0): bool {
-        return (bool) preg_match($pattern, $name, flags: $flags);
     }
 }
