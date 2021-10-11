@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 
 use Skel\Runtime\Installer;
@@ -11,7 +12,7 @@ const SKEL_SAPI = [
 
 require_once __DIR__ . '/cfg/boot.php';
 
-function main(string $wdir, array $argv, int $argc, $input_stream, $output_stream, $error_stream): void {
+function install(string $wdir, array $argv, int $argc, $input_stream, $output_stream, $error_stream): void {
     $phar_file = $argc > 1 && strpos($argv[1], '-') !== 0 ? $argv[1] : SKEL_PHAR;
 
     if (is_file($phar_file = $wdir . DIRECTORY_SEPARATOR . $phar_file) && !in_array('-y', $argv)) {
@@ -52,4 +53,4 @@ EOF;
     return $stub;
 }
 
-main(getcwd(), $argv, $argc, STDIN, STDOUT, STDERR);
+install(getcwd(), $argv, $argc, STDIN, STDOUT, STDERR);

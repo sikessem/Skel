@@ -33,7 +33,7 @@ class Installer {
             'LICENSE',
             'README.md',
             'composer.*',
-            'main.php',
+            'install',
             'skel.phar',
         ]);
         $pathFinder = new PathFinder;
