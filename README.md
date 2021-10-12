@@ -1,4 +1,4 @@
-# Skel: The SIKessEm language
+# The Skel language
 
 Skel is an object-oriented programming language for scripting and hypertext markup
 
@@ -9,7 +9,7 @@ Use Composer to install the library with this command:
 
 `composer global require skel/core`
 
-Or [click here to download it directly in PHP Archive (Phar) ](https://sikessem.com/download/skel.phar)
+Or [click here to download it directly in PHP Archive (Phar)](https://oss.sikessem.com/download/skel.phar)
 
 
 ## Usage
@@ -22,9 +22,9 @@ If you are using Composer, run `skel -h`.
 PHP 8.0.0 or above (at least 8.0.11 recommended to avoid potential bugs)
 
 
-## Author
+## Author Contacts
 
-SIGUI Kessé Emmanuel ([https://sikessem.com/](https://sikessem.com/about)) <[developer@sikessem.com](mailto:developer@sikessem.com)> | [GitLab](https://gitlab.com/SIKessEm) | [GitHub](https://github.com/SIKessEm) | [npm](https://npmjs.org/~sikessem) | [Composer - Packagist](https://packagist.org/packages/sikessem/) | [Twitter](https://twitter.com/SIKessEm_tweets)
+SIGUI Kessé Emmanuel ([Website](https://dev.sikessem.com)) <[E-mail](mailto:developer@sikessem.com)> | [GitLab](https://gitlab.com/SIKessEm) | [GitHub](https://github.com/SIKessEm) | [npm](https://npmjs.org/~sikessem) | [Composer - Packagist](https://packagist.org/packages/sikessem/) | [Twitter](https://twitter.com/SIKessEm_tweets) | [LinkedIn](https://linkedin.com/in/SIKessEm)
 
 
 ## Security Reports
