@@ -2,7 +2,11 @@
 
 namespace Skel\Runtime;
 
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'Dir.php';
+
 class Autoload {
+    use Dir;
+
     protected const VERSION_OPERATOR_INVERSE = [
         '<' => '>=',
         'lt' => 'ge',
@@ -20,7 +24,9 @@ class Autoload {
         'ne' => 'eq',
     ];
 
-    public function __construct(protected string $root, protected array $requirements) {}
+    public function __construct(string $dir, protected array $requirements) {
+        $this->setDir($dir);
+    }
 
     public function __invoke($object) {
         $plateform = $this->requirements['plateform'] ?? [];
@@ -62,13 +68,13 @@ class Autoload {
 
         if (
             preg_match('/^'. preg_quote('Skel\\', '/') .'(.*)$/', $object, $matches) &&
-            is_file($file = $this->root . str_replace('\\', DIRECTORY_SEPARATOR, "\\src\\$matches[1].php"))
+            is_file($file = $this->dir . str_replace('\\', DIRECTORY_SEPARATOR, "\\src\\$matches[1].php"))
         ) return require_once $file;
 
 
         // lib autoload
 
-        $dir = $this->root . DIRECTORY_SEPARATOR .'lib' . DIRECTORY_SEPARATOR;
+        $dir = $this->dir . DIRECTORY_SEPARATOR .'lib' . DIRECTORY_SEPARATOR;
         if (is_file($file = $dir . str_replace('\\', DIRECTORY_SEPARATOR, "$object.php"))) return require_once $file;
 
         $names = explode('\\', $object);

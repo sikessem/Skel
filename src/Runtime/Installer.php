@@ -5,18 +5,10 @@ namespace Skel\Runtime;
 use \Phar;
 
 class Installer {
+    use Dir;
+
     public function __construct(string $dir, protected ?string $phar = null) {
         $this->setDir($dir);
-    }
-
-    protected string $dir;
-
-    public function setDir(string $dir): void {
-        $this->dir = realpath($dir) . DIRECTORY_SEPARATOR;
-    }
-
-    public function getDir(): string {
-        return $this->dir;
     }
 
     public function setup(string $file, string $stub, ?int $algo = null): void {
