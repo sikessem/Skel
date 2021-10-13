@@ -3,38 +3,31 @@
 namespace Skel\Runtime;
 
 class Lexer {
-  public function __construct() {
-    $this->hacker = new Hacker;
+  public function __construct(array $lexemes) {
+    $this->setLexemes($lexemes);
   }
 
-  protected Hacker $hacker;
+  protected $lexemes = [];
 
-  public function get_token(string $value): ?string {
-    if ($contexts = $this->hacker->getContexts())
-      foreach ($contexts as $token => $context)
-        if (strtolower($context['from']) === strtolower($value))
-          return "{$token}_from";
+  public function setLexemes(array $lexemes): static {
+    foreach ($lexemes as $lexeme)
+      $this->setLexeme($lexeme);
+    return $this;
+  }
 
-    if ($contexts = $this->hacker->getContexts())
-      foreach ($contexts as $token => $context)
-        if (strtolower($context['to']) === strtolower($value))
-          return "{$token}_to";
+  public function setLexeme(Lexeme $lexeme): static {
+    $this->lexemes[] = $lexeme;
+    return $this;
+  }
 
-    if ($keywords = $this->hacker->getKeywords())
-      foreach ($keywords as $keyword)
-        if (strtolower($keyword) === strtolower($value))
-          return $keyword;
+  public function getLexemes(): ?array {
+    return $this->lexemes;
+  }
 
-    if ($specials = $this->hacker->getSpecials())
-      foreach ($specials as $token => $special)
-        if ($special === $value)
-          return $token;
-
-    if ($patterns = $this->hacker->getPatterns())
-      foreach ($patterns as $token => $pattern)
-        if (preg_match("/^$pattern$/", $value, $matches))
-          return $token;
-
+  public function getLexeme(string $code): ?Lexeme {
+    foreach ($this->lexemes as $lexeme)
+      if ($lexeme->is($code))
+        return $lexeme;
     return null;
   }
 
@@ -48,8 +41,8 @@ class Lexer {
   protected function process(): bool {
     while (!is_null($char = $this->get_char())) {
       $statement = isset($this->statement) ? $this->statement . $char : $char;
-      if ($token = $this->get_token($statement)) {
-          $this->token = $token;
+      if ($lexeme = $this->getLexeme($statement)) {
+          $this->token = $lexeme->getKey();
           $this->statement = $statement;
       } else {
           $this->add_statement_token() ? --$this->offset : $this->offset = 0;
@@ -59,7 +52,7 @@ class Lexer {
     return $this->add_statement_token();
   }
 
-  protected ?string $token = null;
+  protected ?string $lexeme = null;
   protected ?string $statement = null;
   protected array $tokens = [];
 

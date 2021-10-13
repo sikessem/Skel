@@ -4,7 +4,7 @@ namespace Skel\Runtime;
 
 class Interpreter {
     public function __construct() {
-        $this->lexer = new Lexer;
+        $this->lexer = new Lexer((array) require __DIR__ . '/lexemes.php');
     }
 
     protected Lexer $lexer;
