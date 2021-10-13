@@ -10,6 +10,16 @@ class Lexer {
   protected Hacker $hacker;
 
   public function get_token(string $value): ?string {
+    if ($contexts = $this->hacker->getContexts())
+      foreach ($contexts as $token => $context)
+        if (strtolower($context['from']) === strtolower($value))
+          return "{$token}_from";
+
+    if ($contexts = $this->hacker->getContexts())
+      foreach ($contexts as $token => $context)
+        if (strtolower($context['to']) === strtolower($value))
+          return "{$token}_to";
+
     if ($keywords = $this->hacker->getKeywords())
       foreach ($keywords as $keyword)
         if (strtolower($keyword) === strtolower($value))
@@ -37,14 +47,14 @@ class Lexer {
 
   protected function process(): bool {
     while (!is_null($char = $this->get_char())) {
-        $statement = isset($this->statement) ? $this->statement . $char : $char;
-        if ($token = $this->get_token($statement)) {
-            $this->token = $token;
-            $this->statement = $statement;
-        } else {
-            $this->add_statement_token() ? --$this->offset : $this->offset = 0;
-            $this->process();
-        }
+      $statement = isset($this->statement) ? $this->statement . $char : $char;
+      if ($token = $this->get_token($statement)) {
+          $this->token = $token;
+          $this->statement = $statement;
+      } else {
+          $this->add_statement_token() ? --$this->offset : $this->offset = 0;
+          $this->process();
+      }
     }
     return $this->add_statement_token();
   }
